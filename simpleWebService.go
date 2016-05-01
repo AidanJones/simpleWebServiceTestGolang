@@ -61,6 +61,9 @@ func handler(w http.ResponseWriter, r *http.Request) {
 
 func addToMessageMap(value string) string {
 	//TODO Could have uid in a concurency safe manner. Use a UID package?
+	if messageMap == nil {
+		messageMap = make(map[string]string)
+	}
 	umessageid = umessageid + 1
 	var key string = fmt.Sprintf("%v", umessageid)
 	messageMap[key] = value
