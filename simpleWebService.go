@@ -4,18 +4,21 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"sync"
+	"sync/atomic"
 )
 
 var messageMap map[string]string
-var umessageid int
+var umessageid uint64
+var mu = &sync.Mutex{}
 
 func handler(w http.ResponseWriter, r *http.Request) {
 
-	//TODO split handler in to 2 based on parsing of requies, might be advance MUX.
+	//TODO split handler in to two seperate methods based on parsing of URL, may be possible with advanced MUX.
 
 	var returnMessage string = ""
 
-	//If there is some data sent in.
+	//If there is some data sent in as a post message.
 	if r.Header.Get("Content-Type") == "application/x-www-form-urlencoded" {
 		fmt.Printf("Got input.\n")
 
@@ -32,25 +35,28 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		fmt.Printf("Message sent in " + message + "\n")
+		//Add message to the map....
 		var messageid string = addToMessageMap(message)
 		fmt.Printf("Message ID " + messageid + "\n")
-		returnMessage = "" + messageid
-		//retun json  object with message id
 
-		w.Header().Set("Content-Type", "application/json")
-
+		//return json  object with message id
 		//TODO create struct and parse this as json?
+		w.Header().Set("Content-Type", "application/json")
 		fmt.Fprintf(w, "{\"id\":"+messageid+"}"+"\n")
 	} else {
-		//Now take the id from the path
+		//If there is a reuest for a message
 		fmt.Printf("Got request.\n")
 		fmt.Printf("Path " + r.URL.Path + "\n")
+		//Take the id from the path
 		var messageid string = strings.SplitAfter(r.URL.Path, "/")[2]
 		fmt.Printf("Message ID " + messageid + "\n")
+		//Retreive message from map.
 		var message string = retreiveFromMessageMap(messageid)
 		if message != "" {
+			//Send the stored message back
 			returnMessage = "" + message
 		} else {
+			//Send error message
 			returnMessage = "message Id not found"
 		}
 
@@ -60,12 +66,15 @@ func handler(w http.ResponseWriter, r *http.Request) {
 }
 
 func addToMessageMap(value string) string {
-	//TODO Could have uid in a concurency safe manner. Use a UID package?
+	//Using mutex to lock the atomic increment of id and addition to map.
+	mu.Lock()
 	if messageMap == nil {
 		messageMap = make(map[string]string)
 	}
-	umessageid = umessageid + 1
+
+	atomic.AddUint64(&umessageid, 1)
 	var key string = fmt.Sprintf("%v", umessageid)
+	mu.Unlock()
 	messageMap[key] = value
 	return key
 }
