@@ -2,10 +2,12 @@
 Simple web service which allows users to store and retrieve plain text messages.
 
 The service behaves as follows:
-$ curl $domain/messages/ -d 'my test message to store' 
+$ curl $domain/messages/ -d 'my test message to store'  
+
 {"id":12345}	
 
-$ curl $domain/messages/12345
+$ curl $domain/messages/12345  
+
 my test message to store
 
 # Overview
