@@ -8,15 +8,13 @@ import (
 	"sync/atomic"
 )
 
-var messageMap map[string]string
-var umessageid uint64
-var mu = &sync.Mutex{}
+var messageMap map[string]string // Map to store messages
+var umessageid uint64            //counter for unique message id
+var mu = &sync.Mutex{}           // Mutex used in lock of the messageMap, just used when updating the map.
 
 func handler(w http.ResponseWriter, r *http.Request) {
 
 	//TODO split handler in to two seperate methods based on parsing of URL, may be possible with advanced MUX.
-
-	var returnMessage string = ""
 
 	//If there is some data sent in as a post message.
 	if r.Header.Get("Content-Type") == "application/x-www-form-urlencoded" {
@@ -51,21 +49,18 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		var messageid string = strings.SplitAfter(r.URL.Path, "/")[2]
 		fmt.Printf("Message ID " + messageid + "\n")
 		//Retreive message from map.
-		var message string = retreiveFromMessageMap(messageid)
-		if message != "" {
-			//Send the stored message back
-			returnMessage = "" + message
-		} else {
-			//Send error message
-			returnMessage = "message Id not found"
+		message := retreiveFromMessageMap(messageid)
+		if message == "" {
+			//If no message to retreive send error message
+			message = "message Id not found"
 		}
-
-		fmt.Fprintf(w, returnMessage+"\n")
+		fmt.Printf("Message: " + message + "\n")
+		fmt.Fprintf(w, message+"\n")
 	}
 
 }
 
-func addToMessageMap(value string) string {
+func addToMessageMap(message string) string {
 	//Using mutex to lock the atomic increment of id and addition to map.
 	mu.Lock()
 	if messageMap == nil {
@@ -75,12 +70,21 @@ func addToMessageMap(value string) string {
 	atomic.AddUint64(&umessageid, 1)
 	var key string = fmt.Sprintf("%v", umessageid)
 	mu.Unlock()
-	messageMap[key] = value
+
+	messageMap[key] = message
+
 	return key
 }
 
 func retreiveFromMessageMap(key string) string {
-	return messageMap[key]
+	mu.Lock()
+	if messageMap == nil {
+		messageMap = make(map[string]string)
+	}
+	mu.Unlock()
+
+	message := messageMap[key]
+	return message
 }
 
 func main() {
