@@ -26,8 +26,9 @@ Run go file from bin dir.
 # How to Test:
 There is a go test to ensure that update and retrieval from map works as expected.  
 To run use the following command in the dowloaded directory.  
-$ go test
 
+$ go test
+  
 From a mac simply paste these commands in to terminal. 
 
 $ curl localhost:8080/messages/ -d 'my test message to store' 
