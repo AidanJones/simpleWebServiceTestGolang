@@ -29,6 +29,9 @@ $ go test
 From a mac simply paste these commands in to terminal. 
 
 $ curl localhost:8080/messages/ -d 'my test message to store' 
+ 
 {"id":12345}
 
 $ curl localhost:8080/messages/12345
+
+my test message to store
