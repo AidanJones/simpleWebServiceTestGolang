@@ -20,6 +20,7 @@ type messageIdStruct struct {
 }
 
 func handlePostMessage(w http.ResponseWriter, r *http.Request) {
+	//TODO parse this in a safer way...
 
 	//If there is some data sent in as a post message.
 	//if r.Header.Get("Content-Type") == "application/x-www-form-urlencoded" {
@@ -44,6 +45,8 @@ func handlePostMessage(w http.ResponseWriter, r *http.Request) {
 
 	//return json  object with message id
 
+	//TODO decide on a valid message id format.
+
 	mis := messageIdStruct{messageid}
 
 	if err := json.NewEncoder(w).Encode(mis); err != nil {
@@ -52,7 +55,7 @@ func handlePostMessage(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleGetMessage(w http.ResponseWriter, r *http.Request) {
-
+	//TODO validate the message id.
 	vars := mux.Vars(r)
 	var messageid string
 	messageid = vars["messageId"]
