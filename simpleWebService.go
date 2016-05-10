@@ -47,13 +47,11 @@ func handlePostMessage(w http.ResponseWriter, r *http.Request) {
 
 func handleGetMessage(w http.ResponseWriter, r *http.Request) {
 
-	//TODO split handler in to two seperate methods based on parsing of URL, may be possible with advanced MUX.
-
 	vars := mux.Vars(r)
 	var messageid string
 	messageid = vars["messageId"]
 
-	//If there is a reuest for a message
+	//If there is a request for a message
 	fmt.Printf("Got request.\n")
 	fmt.Printf("Path " + r.URL.Path + "\n")
 	//Take the id from the path
