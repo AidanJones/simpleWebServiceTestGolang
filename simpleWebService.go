@@ -1,10 +1,10 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
-
 	"sync"
 	"sync/atomic"
 
@@ -14,6 +14,10 @@ import (
 var messageMap map[string]string // Map to store messages
 var umessageid uint64            //counter for unique message id
 var mu = &sync.Mutex{}           // Mutex used in lock of the messageMap, just used when updating the map.
+
+type messageIdStruct struct {
+	MessageId string `json:"id"`
+}
 
 func handlePostMessage(w http.ResponseWriter, r *http.Request) {
 
@@ -39,10 +43,12 @@ func handlePostMessage(w http.ResponseWriter, r *http.Request) {
 	fmt.Printf("Message ID " + messageid + "\n")
 
 	//return json  object with message id
-	//TODO create struct and parse this as json?
-	w.Header().Set("Content-Type", "application/json")
-	fmt.Fprintf(w, "{\"id\":"+messageid+"}"+"\n")
 
+	mis := messageIdStruct{messageid}
+
+	if err := json.NewEncoder(w).Encode(mis); err != nil {
+		panic(err)
+	}
 }
 
 func handleGetMessage(w http.ResponseWriter, r *http.Request) {
