@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"sync"
@@ -17,27 +18,22 @@ var mu = &sync.Mutex{}           // Mutex used in lock of the messageMap, just u
 
 type messageIdStruct struct {
 	MessageId string `json:"id"`
+	Message   string `json:"-"`
 }
 
 func handlePostMessage(w http.ResponseWriter, r *http.Request) {
 	//TODO parse this in a safer way...
 
 	//If there is some data sent in as a post message.
-	//if r.Header.Get("Content-Type") == "application/x-www-form-urlencoded" {
+	//todo use this as part of validation  if r.Header.Get("Content-Type") == "application/x-www-form-urlencoded" {
 	fmt.Printf("Got input new method.\n")
 
-	//It appears that the the data could also be taken from the body if the Parse form is not run.
-	fmt.Printf("Request Form values.\n")
-	err := r.ParseForm()
+	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		fmt.Printf("Error parsing form.\n")
-	}
-	var message string
-	for k, v := range r.PostForm {
-		fmt.Printf("  [%s]: \"%s\"\n", k, v)
-		message = k
+		panic(err)
 	}
 
+	message := string(body)
 	fmt.Printf("Message sent in " + message + "\n")
 	//Add message to the map....
 	var messageid string = addToMessageMap(message)
@@ -47,8 +43,9 @@ func handlePostMessage(w http.ResponseWriter, r *http.Request) {
 
 	//TODO decide on a valid message id format.
 
-	mis := messageIdStruct{messageid}
+	mis := messageIdStruct{messageid, message}
 
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	if err := json.NewEncoder(w).Encode(mis); err != nil {
 		panic(err)
 	}
@@ -77,6 +74,11 @@ func handleGetMessage(w http.ResponseWriter, r *http.Request) {
 
 }
 
+func Index(w http.ResponseWriter, r *http.Request) {
+	//TODO add some html.
+	fmt.Fprintln(w, "Welcome!")
+}
+
 func addToMessageMap(message string) string {
 	//Using mutex to lock the atomic increment of id and addition to map.
 	mu.Lock()
@@ -103,14 +105,60 @@ func retreiveFromMessageMap(key string) string {
 	return message
 }
 
-func main() {
+func handleGetAllMessages(w http.ResponseWriter, r *http.Request) {
+	//TODO add some html.
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 
+	//mu.Lock()
+	if len(messageMap) > 0 {
+		allMessages := make([]messageIdStruct, 0)
+
+		for k, v := range messageMap {
+			//fmt.Println("k:", k, "v:", v)
+			mis := messageIdStruct{k, v}
+			allMessages = append(allMessages, mis)
+		}
+		//mu.Unlock()
+
+		w.WriteHeader(http.StatusOK)
+		if err := json.NewEncoder(w).Encode(allMessages); err != nil {
+			panic(err)
+		}
+	} else {
+		fmt.Fprintln(w, "No Messages!")
+	}
+}
+
+func handleGetAllMessagesHTML(w http.ResponseWriter, r *http.Request) {
+	//TODO html
+	//crud
+	//list all messages
+	//add html buton to delete
+	//html button an pre filled text box to update message
+
+	//TODO add some html.
+	fmt.Fprintln(w, "Welcome!")
+}
+
+func main() {
+	//todo make it so that this can support arbitary message queue names?
+
+	//todo replace map with db?
 	messageMap = make(map[string]string)
 	umessageid = 12344
 
 	router := mux.NewRouter().StrictSlash(true)
 	router.HandleFunc("/messages/{messageId}", handleGetMessage).Methods("GET")
 	router.HandleFunc("/messages/", handlePostMessage).Methods("POST")
+	router.HandleFunc("/", Index).Methods("GET")
+	router.HandleFunc("/messages/", handleGetAllMessages).Methods("GET")
 
+	//TODO handle for html request
+	//TODO hanle for delete
+	//todo handle for update
+
+	//todo crud curl, what are all the standard curl messages..
+
+	//todo split some of the code in to packages
 	log.Fatal(http.ListenAndServe(":8080", router))
 }
