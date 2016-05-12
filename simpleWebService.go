@@ -86,9 +86,32 @@ func handleGetMessage(w http.ResponseWriter, r *http.Request) {
 
 }
 
+func handleDeleteMessage(w http.ResponseWriter, r *http.Request) {
+	//TODO validate the message id to make sure it meets the standards.
+	//TODO can check message id exists before deleting to give more informative return value.
+	vars := mux.Vars(r)
+	var messageid string
+	messageid = vars["messageId"]
+
+	removeFromMessageMap(messageid)
+
+	fmt.Fprintf(w, "removed"+"\n")
+
+}
+
 func Index(w http.ResponseWriter, r *http.Request) {
 	//TODO add some more html or link to the readme for the project....
 	fmt.Fprintln(w, "Welcome!")
+}
+
+func removeFromMessageMap(key string) {
+	mu.Lock()
+	if messageMap == nil {
+		messageMap = make(map[string]string)
+	}
+	delete(messageMap, key)
+	mu.Unlock()
+
 }
 
 func addToMessageMap(message string) string {
@@ -156,6 +179,7 @@ func main() {
 
 	router := mux.NewRouter().StrictSlash(true)
 	router.HandleFunc("/messages/{messageId}", handleGetMessage).Methods("GET")
+	router.HandleFunc("/messages/{messageId}", handleDeleteMessage).Methods("DELETE")
 	router.HandleFunc("/messages/", handlePostMessage).Methods("POST")
 	router.HandleFunc("/", Index).Methods("GET")
 	router.HandleFunc("/messages/", handleGetAllMessages).Methods("GET")

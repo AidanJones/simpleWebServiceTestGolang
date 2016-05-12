@@ -10,11 +10,16 @@ $ curl $domain/messages/12345
 
 my test message to store
 
+curl -X "DELETE" $domain/messages/12345
+
+removed
+
 # Overview
 Places the message (value) to store into a map with a unique id (key). The key is returned in the form {"id":12345}.	
 
 When the a request for the value/message comes in, if it exists it will be retrieved, if it does not then there following error is sent. "message Id not found".
 
+If a delete message comes in then the object is removed. 
 
 # How to run:
 
@@ -38,3 +43,7 @@ $ curl localhost:8080/messages/ -d 'my test message to store'
 $ curl localhost:8080/messages/12345
 
 my test message to store
+
+$ curl -X "DELETE" localhost:8080/messages/12345
+
+removed
