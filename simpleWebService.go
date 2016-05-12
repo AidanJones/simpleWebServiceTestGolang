@@ -9,7 +9,7 @@ import (
 	"sync"
 	"sync/atomic"
 
-	"text/template"
+	"html/template"
 
 	"github.com/gorilla/mux"
 )
@@ -17,10 +17,18 @@ import (
 var messageMap map[string]string // Map to store messages
 var umessageid uint64            //counter for unique message id
 var mu = &sync.Mutex{}           // Mutex used in lock of the messageMap, just used when updating the map.
+
+//TODO move this out to a file.
 const allMessageTmpl = `
+<body>
+
+<div id="header">
+<h1>All Messages</h1>
+</div>
 {{range .}}
 	Message Id:"{{.MessageId}}"  Message:"{{.Message}}"
 {{end}}
+</body>
 `
 
 type messageIdStruct struct {
@@ -110,7 +118,9 @@ func retreiveFromMessageMap(key string) string {
 }
 
 func handleGetAllMessages(w http.ResponseWriter, r *http.Request) {
-	//TODO add some html.
+	//TODO add html buton to delete
+	//TODO html button an pre filled text box to update message
+
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 
 	//mu.Lock()
@@ -125,8 +135,9 @@ func handleGetAllMessages(w http.ResponseWriter, r *http.Request) {
 		//mu.Unlock()
 
 		t := template.Must(template.New("allMessageTmpl").Parse(allMessageTmpl))
-
+		w.Header().Set("Content-Type", "text/html")
 		t.Execute(w, allMessages)
+
 		//		w.WriteHeader(http.StatusOK)
 		//		if err := json.NewEncoder(w).Encode(allMessages); err != nil {
 		//			panic(err)
@@ -134,18 +145,6 @@ func handleGetAllMessages(w http.ResponseWriter, r *http.Request) {
 	} else {
 		fmt.Fprintln(w, "No Messages!")
 	}
-}
-
-func handleGetAllMessagesHTML(w http.ResponseWriter, r *http.Request) {
-	//TODO html
-	//crud
-	//list all messages
-	//add html buton to delete
-	//html button an pre filled text box to update message
-
-	//TODO add some html.
-
-	fmt.Fprintln(w, "Welcome!")
 }
 
 func main() {
