@@ -9,23 +9,29 @@ import (
 	"sync"
 	"sync/atomic"
 
+	"text/template"
+
 	"github.com/gorilla/mux"
 )
 
 var messageMap map[string]string // Map to store messages
 var umessageid uint64            //counter for unique message id
 var mu = &sync.Mutex{}           // Mutex used in lock of the messageMap, just used when updating the map.
+const allMessageTmpl = `
+{{range .}}
+	Message Id:"{{.MessageId}}"  Message:"{{.Message}}"
+{{end}}
+`
 
 type messageIdStruct struct {
 	MessageId string `json:"id"`
 	Message   string `json:"-"`
 }
 
+//If there is some data sent in as a post message.
 func handlePostMessage(w http.ResponseWriter, r *http.Request) {
-	//TODO parse this in a safer way...
-
-	//If there is some data sent in as a post message.
-	//todo use this as part of validation  if r.Header.Get("Content-Type") == "application/x-www-form-urlencoded" {
+	//TODO do some sanity checks on the body or message passed in.
+	//TODO use this as part of validation  if r.Header.Get("Content-Type") == "application/x-www-form-urlencoded" {
 	fmt.Printf("Got input new method.\n")
 
 	body, err := ioutil.ReadAll(r.Body)
@@ -41,8 +47,6 @@ func handlePostMessage(w http.ResponseWriter, r *http.Request) {
 
 	//return json  object with message id
 
-	//TODO decide on a valid message id format.
-
 	mis := messageIdStruct{messageid, message}
 
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
@@ -52,7 +56,7 @@ func handlePostMessage(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleGetMessage(w http.ResponseWriter, r *http.Request) {
-	//TODO validate the message id.
+	//TODO validate the message id to make sure it meets the standards.
 	vars := mux.Vars(r)
 	var messageid string
 	messageid = vars["messageId"]
@@ -75,7 +79,7 @@ func handleGetMessage(w http.ResponseWriter, r *http.Request) {
 }
 
 func Index(w http.ResponseWriter, r *http.Request) {
-	//TODO add some html.
+	//TODO add some more html or link to the readme for the project....
 	fmt.Fprintln(w, "Welcome!")
 }
 
@@ -120,10 +124,13 @@ func handleGetAllMessages(w http.ResponseWriter, r *http.Request) {
 		}
 		//mu.Unlock()
 
-		w.WriteHeader(http.StatusOK)
-		if err := json.NewEncoder(w).Encode(allMessages); err != nil {
-			panic(err)
-		}
+		t := template.Must(template.New("allMessageTmpl").Parse(allMessageTmpl))
+
+		t.Execute(w, allMessages)
+		//		w.WriteHeader(http.StatusOK)
+		//		if err := json.NewEncoder(w).Encode(allMessages); err != nil {
+		//			panic(err)
+		//		}
 	} else {
 		fmt.Fprintln(w, "No Messages!")
 	}
@@ -137,6 +144,7 @@ func handleGetAllMessagesHTML(w http.ResponseWriter, r *http.Request) {
 	//html button an pre filled text box to update message
 
 	//TODO add some html.
+
 	fmt.Fprintln(w, "Welcome!")
 }
 
