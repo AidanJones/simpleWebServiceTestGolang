@@ -23,11 +23,13 @@ $ curl -X "PUT" $domain/messages/12345 -d 'my new test message to store'
 {"id":12345}	
 
 # Overview
-Places the message (value) to store into a map with a unique id (key). The key is returned in the form {"id":12345}.	
+Places the message (value) to store into a map with a unique id (key). The key is returned in the form {"id":12345}. If the id has already been taken by a put message then the id will increment until it has a free id. 	
 
 When the a request for the value/message comes in, if it exists it will be retrieved, if it does not then there following error is sent. "message Id not found".
 
 If a delete message comes in then the object is removed. 
+
+Put message allows to update a message based on id, or can place a message at a specified id. 
 
 # How to run:
 
