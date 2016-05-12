@@ -2,17 +2,25 @@
 Simple web service which allows users to store and retrieve plain text messages.
 
 The service behaves as follows:
+## post 
 $ curl $domain/messages/ -d 'my test message to store'  
 
 {"id":12345}	
 
+## get
 $ curl $domain/messages/12345  
 
 my test message to store
 
+## delete
 curl -X "DELETE" $domain/messages/12345
 
 removed
+
+## put 
+$ curl -X "PUT" l$domain/messages/12345 -d 'my new test message to store'
+
+{"id":12345}	
 
 # Overview
 Places the message (value) to store into a map with a unique id (key). The key is returned in the form {"id":12345}.	
@@ -36,14 +44,22 @@ $ go test
   
 From a mac simply paste these commands in to terminal. 
 
+## post 
 $ curl localhost:8080/messages/ -d 'my test message to store' 
  
 {"id":12345}
 
+## get
 $ curl localhost:8080/messages/12345
 
 my test message to store
 
+## delete
 $ curl -X "DELETE" localhost:8080/messages/12345
 
 removed
+
+## put 
+$ curl -X "PUT" localhost:8080/messages/12345 -d 'my new test message to store'
+
+{"id":12345}

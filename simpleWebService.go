@@ -99,9 +99,45 @@ func handleDeleteMessage(w http.ResponseWriter, r *http.Request) {
 
 }
 
+func handlePutMessage(w http.ResponseWriter, r *http.Request) {
+	//TODO validate the message id to make sure it meets the standards.
+	//TODO can check message id exists before deleting to give more informative return value.
+	vars := mux.Vars(r)
+	var messageid string
+	messageid = vars["messageId"]
+
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		panic(err)
+	}
+	message := string(body)
+
+	mis := messageIdStruct{messageid, message}
+	putInMessageMap(mis)
+
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	if err := json.NewEncoder(w).Encode(mis); err != nil {
+		panic(err)
+	}
+
+}
+
 func Index(w http.ResponseWriter, r *http.Request) {
 	//TODO add some more html or link to the readme for the project....
 	fmt.Fprintln(w, "Welcome!")
+}
+
+func putInMessageMap(mis messageIdStruct) {
+	//Using mutex to lock the atomic increment of id and addition to map.
+	mu.Lock()
+	if messageMap == nil {
+		messageMap = make(map[string]string)
+	}
+
+	messageMap[mis.MessageId] = mis.Message
+
+	mu.Unlock()
+
 }
 
 func removeFromMessageMap(key string) {
@@ -121,11 +157,20 @@ func addToMessageMap(message string) string {
 		messageMap = make(map[string]string)
 	}
 
-	atomic.AddUint64(&umessageid, 1)
-	var key string = fmt.Sprintf("%v", umessageid)
-	mu.Unlock()
+	var key string
+	//This ensures that the key is free, needed as put allows an id to be used out of sequence.
+	var keyPresent bool = true
+	for keyPresent {
+		atomic.AddUint64(&umessageid, 1)
+		key = fmt.Sprintf("%v", umessageid)
+		message := messageMap[key]
+		if message == "" {
+			keyPresent = false
+		}
+	}
 
 	messageMap[key] = message
+	mu.Unlock()
 
 	return key
 }
@@ -180,6 +225,7 @@ func main() {
 	router := mux.NewRouter().StrictSlash(true)
 	router.HandleFunc("/messages/{messageId}", handleGetMessage).Methods("GET")
 	router.HandleFunc("/messages/{messageId}", handleDeleteMessage).Methods("DELETE")
+	router.HandleFunc("/messages/{messageId}", handlePutMessage).Methods("PUT")
 	router.HandleFunc("/messages/", handlePostMessage).Methods("POST")
 	router.HandleFunc("/", Index).Methods("GET")
 	router.HandleFunc("/messages/", handleGetAllMessages).Methods("GET")
