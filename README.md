@@ -18,7 +18,7 @@ curl -X "DELETE" $domain/messages/12345
 removed
 
 ## put 
-$ curl -X "PUT" l$domain/messages/12345 -d 'my new test message to store'
+$ curl -X "PUT" $domain/messages/12345 -d 'my new test message to store'
 
 {"id":12345}	
 

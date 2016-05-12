@@ -2,6 +2,8 @@ package main
 
 import "testing"
 
+//TODO add more tests. Do the put out of order and ensure that duplicate id is not used.
+
 //Test adding a message to the map and retreiving it.
 func TestAddAndRetreiveFromMessageMap(t *testing.T) {
 

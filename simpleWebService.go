@@ -231,11 +231,7 @@ func main() {
 	router.HandleFunc("/messages/", handleGetAllMessages).Methods("GET")
 
 	//TODO handle for html request
-	//TODO hanle for delete
-	//todo handle for update
 
-	//todo crud curl, what are all the standard curl messages..
-
-	//todo split some of the code in to packages
+	//TODO split some of the code in to packages
 	log.Fatal(http.ListenAndServe(":8080", router))
 }
