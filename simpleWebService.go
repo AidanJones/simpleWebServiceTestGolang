@@ -26,7 +26,7 @@ const allMessageTmpl = `
 <h1>All Messages</h1>
 </div>
 {{range .}}
-	Message Id:"{{.MessageId}}"  Message:"{{.Message}}"
+	Message Id:"{{.MessageId}}"  Message:"{{.Message}}" <br>
 {{end}}
 </body>
 `

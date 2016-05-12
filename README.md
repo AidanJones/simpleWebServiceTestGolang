@@ -31,12 +31,16 @@ If a delete message comes in then the object is removed.
 
 Put message allows to update a message based on id, or can place a message at a specified id. 
 
+It is also possible to see a html page with all messages at 
+http://$domain/messages/
+http://localhost:8080/messages/
+
 # How to run:
 
 Download the repo.
 In terminal navigate to the route of downloaded folder
 Type go install
-Run go file from bin dir.
+Run go file from go bin dir.
 
 # How to Test:
 There is a go test to ensure that update and retrieval from map works as expected.  
